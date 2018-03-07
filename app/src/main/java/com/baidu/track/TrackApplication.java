@@ -68,7 +68,7 @@ public class TrackApplication extends Application {
     /**
      * 轨迹服务ID
      */
-    public long serviceId = 0;
+    public long serviceId = 154152;
 
     /**
      * Entity标识
