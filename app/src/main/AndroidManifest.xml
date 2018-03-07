@@ -34,7 +34,7 @@
 
         <meta-data
                 android:name="com.baidu.lbsapi.API_KEY"
-                android:value="开发者申请的Android端AK"/>
+                android:value="kRVp63ICO0o1AkpNz4VRpf1HkcGVVQSy"/>
 
         <activity
                 android:name=".activity.SplashActivity"
