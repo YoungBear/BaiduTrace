@@ -9,7 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.trace.LBSTraceClient;
@@ -29,6 +31,7 @@ import com.baidu.track.activity.TracingActivity;
 import com.baidu.track.activity.TrackQueryActivity;
 import com.baidu.track.model.ItemInfo;
 import com.baidu.track.utils.CommonUtil;
+import com.baidu.track.utils.DeviceUuidFactory;
 import com.baidu.track.utils.NetUtil;
 
 import java.util.ArrayList;
@@ -42,6 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class TrackApplication extends Application {
+    private static final String TAG = "TrackApplication";
 
     private AtomicInteger mSequenceGenerator = new AtomicInteger();
 
@@ -106,6 +110,18 @@ public class TrackApplication extends Application {
         initView();
         initNotification();
         mClient = new LBSTraceClient(mContext);
+
+
+        /**
+         * 使用brand, project, deviceId确定 entityName
+         */
+        String brand = Build.BRAND;
+        String product = Build.PRODUCT;
+        String deviceId = new DeviceUuidFactory(getApplicationContext()).getDeviceUuid().toString();
+
+        entityName = brand + "_" + product + "_" + deviceId;
+        Log.d(TAG, "entityName: " + entityName);
+
         mTrace = new Trace(serviceId, entityName);
         mTrace.setNotification(notification);
 
