@@ -1,31 +1,39 @@
 apply plugin: 'com.android.application'
 
+// 加载配置文件
+Properties props = new Properties()
+FileInputStream fis = new FileInputStream(file("./config.properties"))
+BufferedReader bf = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+props.load(bf)
+
 android {
-    compileSdkVersion 24
-    buildToolsVersion '25.0.0'
+    compileSdkVersion cfg.compileSdkVersion
+    defaultConfig {
+        applicationId "com.baidu.track"
+        minSdkVersion cfg.minSdkVersion
+        targetSdkVersion cfg.targetSdkVersion
+        versionCode cfg.versionCode
+        versionName cfg.versionName
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
 
-
+    // 签名配置
     signingConfigs {
-        release {
-            keyAlias 'ysx_test_alias'
-            keyPassword '123456'
-            storeFile file('ysx_test.jks')
-            storePassword '1qaz2wsx'
-        }
         debug {
-            storeFile file("debug.keystore")
+            storeFile file(props['DEBUG_STORE_FILE'])
+            storePassword props['DEBUG_STORE_PASSWORD']
+            keyAlias props['DEBUG_KEY_ALIAS']
+            keyPassword props['DEBUG_KEY_PASSWORD']
+        }
+        release {
+            storeFile file(props['RELEASE_STORE_FILE'])
+            storePassword props['RELEASE_STORE_PASSWORD']
+            keyAlias props['RELEASE_KEY_ALIAS']
+            keyPassword props['RELEASE_KEY_PASSWORD']
         }
     }
 
     buildTypes {
-        release {
-            minifyEnabled true
-            shrinkResources true //是否清理无用资源,依赖于minifyEnabled
-            zipAlignEnabled true //是否启用zipAlign压缩
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
-            debuggable false
-        }
         debug {
             debuggable true
             minifyEnabled false  //不启用Proguard混淆
@@ -33,25 +41,58 @@ android {
             zipAlignEnabled false //是否启用zipAlign压缩
             signingConfig signingConfigs.debug
         }
+        release {
+            debuggable false
+            minifyEnabled true //启用Proguard混淆
+            shrinkResources true //是否清理无用资源,依赖于minifyEnabled
+            zipAlignEnabled true //是否启用zipAlign压缩
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
-    defaultConfig {
-        applicationId "com.baidu.track"
-        minSdkVersion 13
-        targetSdkVersion 23
-        versionCode 3
-        versionName "3.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
+
     sourceSets {
         main {
             jniLibs.srcDir 'libs'
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def fileName
+            if ("release" == variant.buildType.name) {
+                fileName = "baidu_track_app_${variant.buildType.name}_${defaultConfig.versionName}_${getTime()}.apk"
+            } else {
+                fileName = "baidu_track_app_${variant.buildType.name}_${defaultConfig.versionName}.apk"
+            }
+
+            outputFileName = fileName
+        }
+    }
+
+    productFlavors {
+    }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'junit:junit:4.12'
-    compile 'com.android.support.test:runner:0.5'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // support
+    implementation "com.android.support:appcompat-v7:${libs.support}"
+
+    // constraint-layout
+    implementation "com.android.support.constraint:constraint-layout:${libs.constraint}"
+
+    // 单元测试
+    testImplementation "junit:junit:${libs.junit}"
+    androidTestImplementation "com.android.support.test:runner:${libs.runner}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${libs.espresso}"
+}
+
+def static getTime() {
+    return new Date().format("yyyyMMddHHmmss", TimeZone.getDefault())
 }
